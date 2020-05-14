@@ -3,14 +3,12 @@ import plotly.express as px
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-import plotly.graph_objects as go
 from dash.dependencies import Input, Output
 
 df = pd.read_csv('data.csv', index_col=0)
-df.head()
 mytitle='ERI projects & publications (2009 - 2019) clustered by topic'
 tabtitle='ERI Research Map'
-githublink='https://github.com/saralafia'
+githublink='https://github.com/saralafia/ERI-dashboard'
 
 fig = px.scatter(df, 
                  x=df.x, 
@@ -26,7 +24,6 @@ fig = px.scatter(df,
                              'topic_keywords':df.main_keys, 
                              'main_label':False},
                  color_discrete_sequence=px.colors.qualitative.D3,
-                 #title=mytitle,
                  template='plotly_white')
 
 fig.update_layout(xaxis_showgrid=False, 
@@ -54,4 +51,4 @@ app.layout = html.Div(children=[
 ])
 
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    app.run_server()
