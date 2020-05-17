@@ -1,9 +1,12 @@
+dash_core_components==1.10.0
+dash_html_components==1.0.3
+numpy==1.18.1
+pandas==1.0.3
+plotly==4.7.1
+dash==1.12.0
 certifi==2019.6.16
 chardet==3.0.4
 Click==7.0
-dash==1.12.0
-dash_html_components==1.0.3
-dash_core_components==1.10.0
 dash-renderer==1.0.0
 dash-table==4.1.0
 dask==2.1.0
@@ -19,9 +22,6 @@ Jinja2==2.10.1
 jupyter-core==4.5.0
 MarkupSafe==1.1.1
 nbformat==4.4.0
-numpy==1.16.4
-pandas==1.0.3
-plotly==4.7.1
 pytz==2019.1
 six==1.12.0
 traitlets==4.3.2
