@@ -102,8 +102,8 @@ def update_graph(selected_pi, year_value):
 
         fig.update_layout(
                        {'autosize': True, 
-                       'width':1000,
-                       'height':800,
+                       'width':900,
+                       'height':700,
                        'plot_bgcolor': 'rgba(0, 0, 0, 0)',
                         'paper_bgcolor': 'rgba(0, 0, 0, 0)', 
                         'xaxis_showgrid': False, 
@@ -133,8 +133,8 @@ def update_graph(selected_pi, year_value):
 
         fig.update_layout(
                        {'autosize': True,
-                       'width':1000,
-                       'height':800,
+                       'width':900,
+                       'height':700,
                        'plot_bgcolor': 'rgba(0, 0, 0, 0)',
                         'paper_bgcolor': 'rgba(0, 0, 0, 0)', 
                         'xaxis_showgrid': False, 
