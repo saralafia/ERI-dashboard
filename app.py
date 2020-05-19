@@ -21,6 +21,9 @@ server = app.server
 list_of_pis = df['Name'].unique().tolist()
 list_of_pis.sort()
 
+list_of_depts = df['PI_primary_dept'].unique().tolist()
+list_of_depts.sort()
+
 app.layout = html.Div(children=[
         html.Div(
             className="row",
@@ -31,7 +34,7 @@ app.layout = html.Div(children=[
                         html.Img(className="logo", src=app.get_asset_url("ERI_logo_WEB_72dpi_1.png")),
                         html.H2("ERI Research Map"),
                         html.P(
-                            """Filter documents in the map by researcher or by years."""
+                            """Filter the documents in the map by date. Highlight documents by an ERI researcher or from an academic department/unit."""
                         ),
                         html.Div(
                             className="row",
@@ -43,10 +46,20 @@ app.layout = html.Div(children=[
                                             placeholder="Select an ERI researcher", 
                                             options=[{"label": i, "value": i} for i in list_of_pis],
                                             multi=False,
-                                            #value="Adrian Stier",
-                                            className='pi-selector')
-                                    ], 
-                                    style={'color': '#1E1E1E'}
+                                            className='pi-selector',
+                                            ),
+                                    ]
+                                ), 
+                                html.Div(
+                                    className="div-for-dropdown",
+                                    children=[
+                                        dcc.Dropdown(id="dept-selector",
+                                            placeholder="Select an academic department", 
+                                            options=[{"label": i, "value": i} for i in list_of_depts],
+                                            multi=False,
+                                            className='dept-selector',
+                                            ),
+                                    ]
                                 ),  
                             ],
                         ),
@@ -63,18 +76,23 @@ app.layout = html.Div(children=[
                         dcc.Graph(
                             id='graphs', 
                             config={'displayModeBar': True}, 
-                            #responsive=True,
-                            #animate=True,
+                            responsive=True,
+                            #style={"height" : '80vh', "width" : "100%"},
+                            style={"height" : "80%", "width" : "100%"},
                             ),
-                        dcc.RangeSlider(
-                            id='year--slider',
-                            min=df['year'].min(),
-                            max=df['year'].max(),
-                            value=[2009, 2019],
-                            #value=df['year'].max(),
-                            allowCross=False,
-                            marks={str(year): str(year) for year in df['year'].unique()}, 
-                            step=None, 
+                        html.Div(
+                            className="div-for-slider", 
+                            children=[
+                                dcc.RangeSlider(
+                                    id='year--slider',
+                                    min=df['year'].min(),
+                                    max=df['year'].max(),
+                                    value=[2009, 2019],
+                                    allowCross=False,marks={str(year): str(year) for year in df['year'].unique()}, 
+                                    step=None, 
+                                    className='year--slider',
+                                    ),
+                                ]
                             ),
                     ]
                 )
@@ -84,94 +102,132 @@ app.layout = html.Div(children=[
 
 @app.callback(
     Output('graphs','figure'),
-    [Input('pi-selector', 'value'), Input('year--slider', 'value')])
+    [Input('pi-selector', 'value'), Input('dept-selector', 'value'), Input('year--slider', 'value')])
 
-def update_graph(selected_pi, year_value):
-    #dff = df[df['year'] == year_value]
+def update_graph(selected_pi, selected_dept, year_value):
     dff = df[(df['year']>year_value[0])&(df['year']<year_value[1])]
-    if not selected_pi:
-        fig = px.scatter(dff, 
-                    x='x', 
-                    y='y',
-                    color='main_label',
-                    hover_name='title', 
-                    hover_data=['authors','doi','year','type','main_keys'], 
-                    color_discrete_sequence=px.colors.qualitative.D3, 
-                    opacity=0.6,
-                    )
-
-        fig.update_layout(
-                       {'autosize': True, 
-                       'width':900,
-                       'height':700,
-                       'plot_bgcolor': 'rgba(0, 0, 0, 0)',
-                        'paper_bgcolor': 'rgba(0, 0, 0, 0)', 
-                        'xaxis_showgrid': False, 
-                        'yaxis_showgrid': False, 
-                        'xaxis_zeroline': False, 
-                        'yaxis_zeroline': False, 
-                        'yaxis_visible': False, 
-                        'xaxis_visible': False, 
-                        'font':{'family':"sans-serif", 'size':14, 'color':'white'},
-                        'legend': {'title':'Main Topic','itemsizing': 'constant'}, 
-                        'legend_font': {'family':"sans-serif", 'size':14, 'color':'white'},
-                        }
-                        )
-
-        return fig
     
-    else:
-        fig = px.scatter(dff, 
-                    x='x', 
-                    y='y',
-                    color='main_label',
-                    hover_name='title', 
-                    hover_data=['authors','doi','year','type','main_keys'], 
-                    color_discrete_sequence=px.colors.qualitative.D3, 
-                    opacity=0.2, 
-                    )
+    fig = px.scatter(dff, 
+        x='x', 
+        y='y',
+        color='main_label',
+        hover_name='title', 
+        hover_data={
+            'x':False,
+            'y':False,
+            'main_label':False,
+            'authors':True,
+            'year':True,
+            'type':True,
+            'doi':True, 
+            'keywords':True,
+            },
+        color_discrete_sequence=px.colors.qualitative.D3, 
+        opacity=0.2, 
+        )
 
-        fig.update_layout(
-                       {'autosize': True,
-                       'width':900,
-                       'height':700,
-                       'plot_bgcolor': 'rgba(0, 0, 0, 0)',
-                        'paper_bgcolor': 'rgba(0, 0, 0, 0)', 
-                        'xaxis_showgrid': False, 
-                        'yaxis_showgrid': False, 
-                        'xaxis_zeroline': False, 
-                        'yaxis_zeroline': False, 
-                        'yaxis_visible': False, 
-                        'xaxis_visible': False, 
-                        'font':{'family':"sans-serif", 'size':14, 'color':'white'},
-                        'legend': {'title':'Main Topic','itemsizing': 'constant'}, 
-                        'legend_font': {'family':"sans-serif", 'size':14, 'color':'white'},
-                        }
-                        )
+    fig.update_layout(
+       {'autosize': True,
+       'plot_bgcolor': 'rgba(0, 0, 0, 0)',
+        'paper_bgcolor': 'rgba(0, 0, 0, 0)', 
+        'xaxis_showgrid': False, 
+        'yaxis_showgrid': False, 
+        'xaxis_zeroline': False, 
+        'yaxis_zeroline': False, 
+        'yaxis_visible': False, 
+        'xaxis_visible': False, 
+        'font':{'family':"sans-serif", 'size':14, 'color':'white'},
+        'legend': {'title':'Main Topic','itemsizing': 'constant'}, 
+        'legend_font': {'family':"sans-serif", 'size':14, 'color':'white'},
+        }
+        )
+
+    if selected_pi:
+        fig.update_traces(hovertemplate=None,hoverinfo='skip')
 
         filtered_df = dff[dff.Name == selected_pi]
-        
+    
         fig.add_trace(go.Scatter(
-                    x=filtered_df['x'], 
-                    y=filtered_df['y'], 
-                    #name='title',
-                    text=filtered_df['title'],
-                    mode='markers', 
-                    #marker_symbol='x',
-                    marker=dict(
-                        color='whitesmoke',
-                        #size=11,
-                        opacity=0.9,
-                        line=dict(
-                            color='White',
-                            width=2)
-                        ),
-                    hoverinfo='none', 
-                    hovertemplate= 
-                    "<b>Title: %{text}</b><br><br>" +
-                    "<extra></extra>",
-                    showlegend=False))
-        
+            x=filtered_df['x'], 
+            y=filtered_df['y'], 
+            text=filtered_df['title'],
+            mode='markers', 
+            marker=dict(
+                color='whitesmoke',
+                opacity=0.9,
+                line=dict(
+                    color='White',
+                    width=2)
+                ),
+            hoverinfo='text', 
+            hovertemplate= 
+            "<b>Title: %{text}</b><br><br>" +
+            "<extra></extra>",
+            showlegend=False))
+    
+        return fig
+
+    elif selected_dept:
+        fig.update_traces(hovertemplate=None,hoverinfo='skip')
+
+        filtered_df = dff[dff.PI_primary_dept == selected_dept]
+    
+        fig.add_trace(go.Scatter(
+            x=filtered_df['x'], 
+            y=filtered_df['y'], 
+            text=filtered_df['title'],
+            mode='markers', 
+            marker=dict(
+                color='whitesmoke',
+                opacity=0.9,
+                line=dict(
+                    color='White',
+                    width=2)
+                ),
+            hoverinfo='text', 
+            hovertemplate= 
+            "<b>Title: %{text}</b><br><br>" +
+            "<extra></extra>",
+            showlegend=False))
+    
+        return fig
+
+    else:  
+        fig = px.scatter(dff, 
+            x='x', 
+            y='y',
+            color='main_label',
+            hover_name='title',
+            hover_data={
+            'x':False,
+            'y':False,
+            'main_label':False,
+            'authors':True,
+            'year':True,
+            'type':True,
+            'doi':True, 
+            'keywords':True,
+            },
+            color_discrete_sequence=px.colors.qualitative.D3, 
+            opacity=0.6, 
+            )
+
+        fig.update_layout(
+           {'autosize': True, 
+           'plot_bgcolor': 'rgba(0, 0, 0, 0)',
+            'paper_bgcolor': 'rgba(0, 0, 0, 0)', 
+            'xaxis_showgrid': False, 
+            'yaxis_showgrid': False, 
+            'xaxis_zeroline': False, 
+            'yaxis_zeroline': False, 
+            'yaxis_visible': False, 
+            'xaxis_visible': False, 
+            'font':{'family':"sans-serif", 'size':14, 'color':'white'},
+            'legend': {'title':'Main Topic','itemsizing': 'constant'}, 
+            'legend_font': {'family':"sans-serif", 'size':14, 'color':'white'},
+            }
+            )
+
         return fig
 
     return graphs
