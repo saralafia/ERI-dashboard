@@ -12,10 +12,8 @@ from dash.dependencies import Input, Output
 
 coarse = pd.read_csv('data-tsne-9.csv', index_col=0)
 fine = pd.read_csv('data-tsne-36.csv', index_col=0)
-coarse_umap = pd.read_csv('data-umap-9.csv', index_col=0)
-fine_umap = pd.read_csv('data-umap-36.csv', index_col=0)
 
-all_options = {'coarse (t-SNE)': coarse, 'coarse (UMAP)': coarse_umap, 'fine (t-SNE)': fine, 'fine (UMAP)': fine_umap}
+all_options = {'coarse (9 topics)': coarse, 'fine (36 topics)': fine}
 
 app = dash.Dash(
     __name__, meta_tags=[{"name": "viewport", "content": "width=device-width"}]
@@ -45,34 +43,35 @@ app.layout = html.Div(children=[
                 html.Div(
                     className="four columns div-user-controls",
                     children=[
-                        html.Img(className="logo", src=app.get_asset_url("ERI_logo_WEB_72dpi_1.png")),
-                        html.H4(className='what-is', children='Earth Research Institute Maps'),
+                        html.Img(className="logo", src=app.get_asset_url("ERI_logo_WEB_72dpi_1.png"), width="200", height="112"),
+                        html.H4(className='what-is', children='ERI Research Maps'),
                         html.Div(id='control-tabs', className='control-tabs', children=[
-                                dcc.Tabs(id='tabs', value='what-is', children=[
+                                dcc.Tabs(id='tabs', value='what-is', parent_className='custom-tabs', children=[
                                     dcc.Tab(
                                         label='About',
                                         value='what-is',
-                                        children=html.Div(className='control-tab', children=[
+                                        children=html.Div(className='custom-tab', children=[
                                             html.Div(
                                                 className="text-padding",
                                                 children=[],
                                                 ),
-                                            html.P('These maps show neighborhoods of topically similar research documents from the Earth Research Institute (ERI) at UC Santa Barbara. The 3,770 research documents (publications and projects) are associated with ERI researchers from 2001 - 2019. Each point in the map is a document color-coded by its main topic. Each document is assigned a mixture of topics from a non-negative matrix factorization (NMF) topic model and is embedded using t-distributed stochastic neighbor embedding (t-SNE) or uniform manifold approximation and projection (UMAP).'),
-                                            html.P('Change the level of detail and embedding method for documents with the radio buttons on top of the map. Filter documents in the map by date range with the slider at the bottom of the map. Isolate a topic by double-clicking it in the map legend. In the "Search" tab, highlight documents in the map by affiliated researcher or academic department.'),
+                                            html.P('The maps show neighborhoods of topically similar research documents (3,770 publications and projects) from UC Santa Barbara\'s Earth Research Institute (ERI) from 2001 - 2019.'),
+                                            html.P('Each document is assigned a mixture of topics from a topic model (non-negative matrix factorization: NMF). Documents are color-coded by main topic and embedded (t-distributed stochastic neighbor embedding: t-SNE) as points.'),
+                                            html.P('In the "Search" tab, highlight documents in the map by affiliated researcher or academic department. See metadata for a document clicked in the map (i.e. available DOIs).'),
                                             dcc.Markdown("""Dashboard data and code are available on [Github](https://github.com/saralafia/ERI-dashboard).""")
                                         ])
                                     ),
                                     dcc.Tab(
                                         label='Search',
                                         value='search',
-                                        children=html.Div(className='control-tab', children=[
+                                        children=html.Div(className='custom-tab', children=[
                                             html.Div(className="div-for-dropdown",
                                                 children=[
                                                     dcc.Dropdown(id="pi-selector",
                                                         placeholder="ERI researcher", 
                                                         options=[{"label": i, "value": i} for i in list_of_pis],
                                                         multi=False,
-                                                        className='pi-selector')
+                                                        className='div-for-dropdown')
                                                 ]
                                             ), 
                                             html.Div(className='div-for-dropdown',
@@ -81,7 +80,7 @@ app.layout = html.Div(children=[
                                                         placeholder="Academic department", 
                                                         options=[{"label": i, "value": i} for i in list_of_depts],
                                                         multi=False,
-                                                        className='dept-selector')
+                                                        className='div-for-dropdown')
                                                 ]
                                             ),
                                             html.Pre(id='click-data', 
@@ -97,30 +96,29 @@ app.layout = html.Div(children=[
                         html.Div(
                             className="text-padding",
                             children=[
-                                "Change the map (by topical granularity and document embedding method)"
+                                "Topical Granularity (select number of topics to update map)"
                             ],
                         ),
                         dcc.RadioItems(
                             id='granularity-options',
                             options=[{'label': i, 'value': i} for i in all_options.keys()],
-                            value='coarse (t-SNE)',
+                            value='coarse (9 topics)',
                             labelStyle={'display': 'inline-block', 'verticalAlign': 'top', 'width': '20%'}
                             ),
                         dcc.Graph(
                             id='graphs', 
                             config={'displayModeBar': True}, 
                             responsive=True,
-                            #style={"height" : '80vh', "width" : "100%"},
                             style={"height" : "80%", "width" : "100%"},
                             ),
                         html.Div(
                             className="text-padding",
                             children=[
-                                "Change the map (by document start and end year)"
+                                "Date Range (select start and end years to update map)"
                             ],
                         ),
                         html.Div(
-                            className="div-for-slider", 
+                            className="tooltip", 
                             children=[
                                 dcc.RangeSlider(
                                     id='year--slider',
@@ -147,18 +145,15 @@ def update_graph(selected_pi, selected_dept, year_value, granularity_value):
     
     selected = all_options[granularity_value]
     dff = selected[(selected['year']>year_value[0])&(selected['year']<year_value[1])]
-    #dff = df[(df['year']>year_value[0])&(df['year']<year_value[1])]
     
     fig = px.scatter(dff, 
         x='x', 
         y='y',
         color='main_label',
-        #color='main_keys',
         hover_name='title', 
         hover_data={
             'x':False,
             'y':False,
-            #'main_keys':True,
             'main_label':True,
             'authors':True,
             'year':True,
@@ -166,7 +161,6 @@ def update_graph(selected_pi, selected_dept, year_value, granularity_value):
             'doi':True, 
             'main_keys':True,
             },
-        #color_discrete_sequence=px.colors.qualitative.D3, 
         color_discrete_sequence= cc.glasbey,
         opacity=0.2, 
         )
@@ -181,10 +175,10 @@ def update_graph(selected_pi, selected_dept, year_value, granularity_value):
         'yaxis_zeroline': False, 
         'yaxis_visible': False, 
         'xaxis_visible': False, 
-        'font':{'family':"sans-serif", 'size':14, 'color':'white'},
+        'font':{'family':"Open Sans", 'size':14, 'color':'#d8d8d8'},
         'showlegend': True,
-        'legend': {'title':'Main Topic','itemsizing': 'constant'}, 
-        'legend_font': {'family':"sans-serif", 'size':14, 'color':'white'}, 
+        'legend': {'title':'Main Topic (double-click to isolate)','itemsizing': 'constant'}, 
+        'legend_font': {'family':"Open Sans", 'size':14, 'color':'#d8d8d8'}, 
         'clickmode': 'event+select',
         'hovermode': 'closest',
         }
@@ -245,12 +239,10 @@ def update_graph(selected_pi, selected_dept, year_value, granularity_value):
             x='x', 
             y='y',
             color='main_label',
-            #color='main_keys',
             hover_name='title',
             hover_data={
             'x':False,
             'y':False,
-            #'main_keys':True,
             'main_label':True,
             'authors':True,
             'year':True,
@@ -258,7 +250,6 @@ def update_graph(selected_pi, selected_dept, year_value, granularity_value):
             'doi':True, 
             'main_keys':True,
             },
-            #color_discrete_sequence=px.colors.qualitative.D3, 
             color_discrete_sequence= cc.glasbey,
             opacity=0.6, 
             )
@@ -273,10 +264,10 @@ def update_graph(selected_pi, selected_dept, year_value, granularity_value):
             'yaxis_zeroline': False, 
             'yaxis_visible': False, 
             'xaxis_visible': False, 
-            'font':{'family':"sans-serif", 'size':14, 'color':'white'},
+            'font':{'family':"Open Sans", 'size':14, 'color':'#d8d8d8'},
             'showlegend': True,
-            'legend': {'title':'Main Topic','itemsizing': 'constant'}, 
-            'legend_font': {'family':"sans-serif", 'size':14, 'color':'white'}, 
+            'legend': {'title':'Main Topic (double-click to isolate)','itemsizing': 'constant'}, 
+            'legend_font': {'family':"Open Sans", 'size':14, 'color':'#d8d8d8'}, 
             'clickmode': 'event+select',
             'hovermode': 'closest',
             }
@@ -293,7 +284,7 @@ def display_click_data(clickData):
     if clickData:
         return json.dumps(clickData, indent=4, sort_keys=True, separators=(',', ': '))   
     else:
-        return html.P('Click on a document in the map to view its information.')
+        return html.P('Click on a document in the map to view its information')
 
 if __name__ == '__main__':
     app.run_server(debug=True)

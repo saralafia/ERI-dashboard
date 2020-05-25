@@ -55,12 +55,14 @@ a {
 .div-for-dropdown {
   padding-top: 12px;
   padding-bottom: 12px;
+  background-color: #f9f9f9;
 }
 .div-for-slider {
   width: 97%;
   text-align: center;
 }
-.logo {
+.
+ {
   height: 35px;
   padding-bottom: 12px;
   margin-left: 8px;
@@ -206,4 +208,23 @@ a {
 
 .CalendarMonth_table td {
   padding: unset;  
+}
+
+.custom-tabs-container {
+    width: 85%;
+}
+
+.custom-tabs {
+    border-top-left-radius: 3px;
+    background-color: #f9f9f9;
+    color: #1E1E1E;
+    font-family: "system-ui";
+    padding: 5px 5px;
+    border-bottom: 2px solid #d6d6d6;
+}
+
+.custom-tab {
+    border-bottom: 1px solid #d6d6d6;
+    padding: 2px;
+    font-family: "system-ui";
 }
